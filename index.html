@@ -78,6 +78,7 @@
   .filter-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px;}
   .filter-btn{background:var(--panel);border:1px solid var(--line);color:var(--muted);font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;padding:8px 12px;border-radius:8px;cursor:pointer;}
   .filter-btn.active,.filter-btn:hover{background:rgba(76,224,210,0.12);border-color:rgba(76,224,210,0.4);color:var(--cyan);}
+  .search-bar{margin-bottom:16px;}
 
   /* Flavor grid */
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;}
@@ -198,6 +199,9 @@
       <button class="filter-btn" type="button" data-filter="40K transparent pod">40K transparent pod</button>
       <button class="filter-btn" type="button" data-filter="45K non-transparent">45K non-transparent</button>
     </div>
+    <div class="search-bar">
+      <input type="search" id="shopSearch" placeholder="Search flavors..." aria-label="Search flavors">
+    </div>
     <div id="shopGrid" class="grid"></div>
   </div>
 
@@ -226,6 +230,9 @@
 
     <div class="section-title"><span class="dot"></span>Inventory</div>
     <div class="panel">
+      <div class="search-bar">
+        <input type="search" id="manageSearch" placeholder="Search inventory..." aria-label="Search inventory">
+      </div>
       <div class="table-scroll">
         <table>
         <thead>
@@ -312,6 +319,8 @@ let products = [];
 let settings = { shopName: 'Vapor Shop', lowStockThreshold: 10 };
 let saveTimer = null;
 let activeFilter = 'all';
+let shopSearch = '';
+let manageSearch = '';
 
 const seedProducts = () => ([
   { id: cryptoId(), name: 'BANANA - golden ice', category: 'Fruity', type: '50K transparent pod', price: 380, stock: 42, sold: 118 },
@@ -434,7 +443,11 @@ function renderShop(){
   const grid = document.getElementById('shopGrid');
   const sub = document.getElementById('shopSubline');
   const bs = bestSellers().map(p=>p.id);
-  const visibleProducts = activeFilter === 'all' ? products : products.filter(p=>p.type===activeFilter);
+  const visibleProducts = products.filter(product=>{
+    const matchesType = activeFilter === 'all' || product.type===activeFilter;
+    const searchText = `${product.name} ${product.category} ${product.type}`.toLowerCase();
+    return matchesType && searchText.includes(shopSearch);
+  });
   const available = visibleProducts.length;
   sub.textContent = available ? `${available} flavors on the menu right now` : 'No flavors listed yet';
 
@@ -492,7 +505,11 @@ function renderManage(){
     body.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">No flavors yet — add your first one below.</td></tr>`;
     return;
   }
-  body.innerHTML = products.map(p=>{
+  const visibleProducts = products.filter(product=>{
+    const searchText = `${product.name} ${product.category} ${product.type}`.toLowerCase();
+    return searchText.includes(manageSearch);
+  });
+  body.innerHTML = visibleProducts.map(p=>{
     const rowClass = p.stock===0 ? 'row-out' : (p.stock<=settings.lowStockThreshold ? 'row-low' : '');
     return `
     <tr class="${rowClass}" data-id="${p.id}">
@@ -537,6 +554,16 @@ document.querySelector('.filter-bar').addEventListener('click', (e)=>{
   activeFilter = e.target.dataset.filter;
   document.querySelectorAll('.filter-btn').forEach(button=>button.classList.toggle('active', button===e.target));
   renderShop();
+});
+
+document.getElementById('shopSearch').addEventListener('input', (e)=>{
+  shopSearch = e.target.value.trim().toLowerCase();
+  renderShop();
+});
+
+document.getElementById('manageSearch').addEventListener('input', (e)=>{
+  manageSearch = e.target.value.trim().toLowerCase();
+  renderManage();
 });
 
 document.getElementById('addBtn').addEventListener('click', async ()=>{
