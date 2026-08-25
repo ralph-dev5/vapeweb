@@ -75,6 +75,9 @@
   }
   .mist-strip .msg{position:relative;z-index:1;height:100%;display:flex;align-items:center;padding:0 22px;font-family:'Space Grotesk',sans-serif;font-size:15px;color:var(--text);}
   .mist-strip .msg b{color:var(--cyan);margin-right:6px;}
+  .filter-bar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px;}
+  .filter-btn{background:var(--panel);border:1px solid var(--line);color:var(--muted);font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;padding:8px 12px;border-radius:8px;cursor:pointer;}
+  .filter-btn.active,.filter-btn:hover{background:rgba(76,224,210,0.12);border-color:rgba(76,224,210,0.4);color:var(--cyan);}
 
   /* Flavor grid */
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;}
@@ -129,6 +132,7 @@
   .num-col{width:80px;}
   .name-col{min-width:150px;}
   .cat-col{width:120px;}
+  .type-col{width:170px;}
   .price-col{width:90px;}
   .actions-col{width:104px;}
   .row-actions{display:flex;align-items:center;gap:8px;}
@@ -188,6 +192,12 @@
     <div class="mist-strip">
       <div class="msg"><b>●</b><span id="shopSubline">Loading current flavors…</span></div>
     </div>
+    <div class="filter-bar" aria-label="Filter by pod type">
+      <button class="filter-btn active" type="button" data-filter="all">All pods</button>
+      <button class="filter-btn" type="button" data-filter="50K transparent pod">50K transparent pod</button>
+      <button class="filter-btn" type="button" data-filter="40K transparent pod">40K transparent pod</button>
+      <button class="filter-btn" type="button" data-filter="45K non-transparent">45K non-transparent</button>
+    </div>
     <div id="shopGrid" class="grid"></div>
   </div>
 
@@ -222,6 +232,7 @@
           <tr>
             <th class="name-col">Flavor</th>
             <th class="cat-col">Category</th>
+            <th class="type-col">Pod type</th>
             <th class="price-col">Price</th>
             <th class="num-col">Stock</th>
             <th class="num-col">Sold</th>
@@ -246,6 +257,14 @@
             <option>Tobacco</option>
             <option>Beverage</option>
             <option>Other</option>
+          </select>
+        </div>
+        <div class="field" style="max-width:90px;">
+          <label>Pod type</label>
+          <select id="newType">
+            <option>50K transparent pod</option>
+            <option>40K transparent pod</option>
+            <option>45K non-transparent</option>
           </select>
         </div>
         <div class="field" style="max-width:90px;">
@@ -287,24 +306,54 @@ const CATEGORY_COLORS = {
   Beverage: 'var(--violet)',
   Other: 'var(--grey)'
 };
+const PRODUCT_TYPES = ['50K transparent pod', '40K transparent pod', '45K non-transparent'];
 
 let products = [];
 let settings = { shopName: 'Vapor Shop', lowStockThreshold: 10 };
 let saveTimer = null;
+let activeFilter = 'all';
 
 const seedProducts = () => ([
-  { id: cryptoId(), name: 'BANANA - golden ice', category: 'Fruity', price: 380, stock: 42, sold: 118 },
-  { id: cryptoId(), name: 'MANGO - yellow ice', category: 'Menthol', price: 380, stock: 6, sold: 95 },
-  { id: cryptoId(), name: 'STRAWBERRY - pink ice', category: 'Dessert', price: 380, stock: 8, sold: 40 },
-  { id: cryptoId(), name: 'MATCHA - tokyo jade ice', category: 'Tobacco', price: 380, stock: 0, sold: 22 },
-  { id: cryptoId(), name: 'LYCHEE - blush ice', category: 'Fruity', price: 380, stock: 55, sold: 70 },
-  { id: cryptoId(), name: 'WATERMELON - red ice', category: 'Beverage', price: 380, stock: 8, sold: 33 },
-  { id: cryptoId(), name: 'GRAPE - violet ice', category: 'Fruity', price: 380, stock: 0, sold: 0 },
-  { id: cryptoId(), name: 'MILK - wang wang', category: 'Dessert', price: 380, stock: 0, sold: 0 },
-  { id: cryptoId(), name: 'BLUEBERRY - blueberry ice', category: 'Dessert', price: 380, stock: 0, sold: 0 },
-  { id: cryptoId(), name: 'TARO ICE CREAM - purple snow', category: 'Dessert', price: 380, stock: 0, sold: 0 },
-  { id: cryptoId(), name: 'BLACKCURRANT - black ice', category: 'Menthol', price: 380, stock: 0, sold: 0 },
+  { id: cryptoId(), name: 'BANANA - golden ice', category: 'Fruity', type: '50K transparent pod', price: 380, stock: 42, sold: 118 },
+  { id: cryptoId(), name: 'MANGO - yellow ice', category: 'Menthol', type: '50K transparent pod', price: 380, stock: 6, sold: 95 },
+  { id: cryptoId(), name: 'STRAWBERRY - pink ice', category: 'Dessert', type: '50K transparent pod', price: 380, stock: 8, sold: 40 },
+  { id: cryptoId(), name: 'MATCHA - tokyo jade ice', category: 'Tobacco', type: '50K transparent pod', price: 380, stock: 0, sold: 22 },
+  { id: cryptoId(), name: 'LYCHEE - blush ice', category: 'Fruity', type: '50K transparent pod', price: 380, stock: 55, sold: 70 },
+  { id: cryptoId(), name: 'WATERMELON - red ice', category: 'Beverage', type: '50K transparent pod', price: 380, stock: 8, sold: 33 },
+  { id: cryptoId(), name: 'GRAPE - violet ice', category: 'Fruity', type: '50K transparent pod', price: 380, stock: 0, sold: 0 },
+  { id: cryptoId(), name: 'MILK - wang wang', category: 'Dessert', type: '50K transparent pod', price: 380, stock: 0, sold: 0 },
+  { id: cryptoId(), name: 'BLUEBERRY - blueberry ice', category: 'Dessert', type: '50K transparent pod', price: 380, stock: 0, sold: 0 },
+  { id: cryptoId(), name: 'TARO ICE CREAM - purple snow', category: 'Dessert', type: '50K transparent pod', price: 380, stock: 0, sold: 0 },
+  { id: cryptoId(), name: 'BLACKCURRANT - black ice', category: 'Menthol', type: '50K transparent pod', price: 380, stock: 0, sold: 0 },
 ]);
+
+const seed40KProducts = () => ([
+  { name: 'ICE MONKEY - cool menthol', category: 'Menthol' },
+  { name: 'RED PULP - sweet juicy', category: 'Fruity' },
+  { name: 'VERY BAGUIO - refreshing berry', category: 'Fruity' },
+  { name: 'BLUE FREEZE - icy cool', category: 'Menthol' },
+  { name: 'TROUBLE PURPLE - bold grapes', category: 'Fruity' },
+  { name: 'YELLOW SUMMER - tropical mango', category: 'Fruity' },
+  { name: 'BACTERIA MONSTER - unique fusion', category: 'Fruity' },
+  { name: 'SPARKLE SQUEEZE - citrus fizz', category: 'Fruity' },
+  { name: 'YELLOW SUMMER - mixed fruits', category: 'Fruity' },
+  { name: 'RED CANNON - powerful red fruit', category: 'Fruity' },
+  { name: 'VERY CHILL - menthol breeze', category: 'Menthol' },
+  { name: 'BLACK WAVE - deep smooth', category: 'Other' },
+].map(product=>({ ...product, id: cryptoId(), type: '40K transparent pod', price: 380, stock: 0, sold: 0 })));
+
+const seed45KProducts = () => ([
+  { name: 'GRAPES', category: 'Fruity' },
+  { name: 'BANANA', category: 'Fruity' },
+  { name: 'MATCHA', category: 'Other' },
+  { name: 'BLUEBERRIES', category: 'Fruity' },
+  { name: 'MANGO', category: 'Fruity' },
+  { name: 'BUBBLEGUM', category: 'Other' },
+  { name: 'STRAWBERRY', category: 'Fruity' },
+  { name: 'YAKULT', category: 'Beverage' },
+  { name: 'MIX BERRIES', category: 'Fruity' },
+  { name: 'WATERMELON', category: 'Fruity' },
+].map(product=>({ ...product, id: cryptoId(), type: '45K non-transparent', price: 380, stock: 0, sold: 0 })));
 
 function cryptoId(){ return 'p_' + Math.random().toString(36).slice(2,10); }
 
@@ -312,9 +361,18 @@ const isManagePage = ['/manage', '/admin'].includes(location.pathname.replace(/\
 if(isManagePage) document.body.classList.remove('public-menu');
 
 async function loadData(){
+  let addedProducts = [];
   try{
     const savedProducts = localStorage.getItem('vape-shop-products-v2');
     products = savedProducts ? JSON.parse(savedProducts) : seedProducts();
+    products = products.map(product=>({ ...product, type: product.type || '50K transparent pod' }));
+    const existingNames = new Set(products.filter(product=>product.type==='40K transparent pod').map(product=>product.name));
+    addedProducts = seed40KProducts().filter(product=>!existingNames.has(product.name));
+    products.push(...addedProducts);
+    const existing45KNames = new Set(products.filter(product=>product.type==='45K non-transparent').map(product=>product.name));
+    const added45KProducts = seed45KProducts().filter(product=>!existing45KNames.has(product.name));
+    products.push(...added45KProducts);
+    addedProducts.push(...added45KProducts);
   }catch(e){
     products = seedProducts();
   }
@@ -323,7 +381,7 @@ async function loadData(){
     if(savedSettings) settings = { ...settings, ...JSON.parse(savedSettings) };
   }catch(e){ /* use defaults */ }
 
-  if(!localStorage.getItem('vape-shop-products-v2')) await saveProducts();
+  if(!localStorage.getItem('vape-shop-products-v2') || addedProducts.length) await saveProducts();
   renderAll();
 }
 
@@ -376,15 +434,16 @@ function renderShop(){
   const grid = document.getElementById('shopGrid');
   const sub = document.getElementById('shopSubline');
   const bs = bestSellers().map(p=>p.id);
-  const available = products.length;
+  const visibleProducts = activeFilter === 'all' ? products : products.filter(p=>p.type===activeFilter);
+  const available = visibleProducts.length;
   sub.textContent = available ? `${available} flavors on the menu right now` : 'No flavors listed yet';
 
-  if(!products.length){
+  if(!visibleProducts.length){
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="glyph">☁</div>No flavors available yet — check back soon.</div>`;
     return;
   }
 
-  grid.innerHTML = products.map(p=>{
+  grid.innerHTML = visibleProducts.map(p=>{
     const pct = stockPct(p);
     const label = stockLabel(p);
     const isBest = bs.includes(p.id);
@@ -430,7 +489,7 @@ function renderManage(){
   // table
   const body = document.getElementById('inventoryBody');
   if(!products.length){
-    body.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px;">No flavors yet — add your first one below.</td></tr>`;
+    body.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">No flavors yet — add your first one below.</td></tr>`;
     return;
   }
   body.innerHTML = products.map(p=>{
@@ -441,6 +500,11 @@ function renderManage(){
       <td>
         <select class="edit-category">
           ${Object.keys(CATEGORY_COLORS).map(c=>`<option value="${c}" ${c===p.category?'selected':''}>${c}</option>`).join('')}
+        </select>
+      </td>
+      <td>
+        <select class="edit-type">
+          ${PRODUCT_TYPES.map(type=>`<option value="${type}" ${type===p.type?'selected':''}>${type}</option>`).join('')}
         </select>
       </td>
       <td><input type="number" min="0" step="0.01" class="edit-price" value="${p.price}"></td>
@@ -468,13 +532,21 @@ document.getElementById('tabManageBtn').addEventListener('click', ()=>{
   document.getElementById('viewShop').classList.remove('active');
 });
 
+document.querySelector('.filter-bar').addEventListener('click', (e)=>{
+  if(!e.target.classList.contains('filter-btn')) return;
+  activeFilter = e.target.dataset.filter;
+  document.querySelectorAll('.filter-btn').forEach(button=>button.classList.toggle('active', button===e.target));
+  renderShop();
+});
+
 document.getElementById('addBtn').addEventListener('click', async ()=>{
   const name = document.getElementById('newName').value.trim();
   const category = document.getElementById('newCategory').value;
+  const type = document.getElementById('newType').value;
   const price = parseFloat(document.getElementById('newPrice').value) || 0;
   const stock = parseInt(document.getElementById('newStock').value) || 0;
   if(!name) return;
-  products.push({ id: cryptoId(), name, category, price, stock, sold: 0 });
+  products.push({ id: cryptoId(), name, category, type, price, stock, sold: 0 });
   document.getElementById('newName').value = '';
   document.getElementById('newPrice').value = '';
   document.getElementById('newStock').value = '';
@@ -490,6 +562,7 @@ document.getElementById('inventoryBody').addEventListener('input', (e)=>{
   if(!p) return;
   if(e.target.classList.contains('edit-name')) p.name = e.target.value;
   if(e.target.classList.contains('edit-category')) p.category = e.target.value;
+  if(e.target.classList.contains('edit-type')) p.type = e.target.value;
   if(e.target.classList.contains('edit-price')) p.price = parseFloat(e.target.value) || 0;
   if(e.target.classList.contains('edit-stock')) p.stock = Math.max(0, parseInt(e.target.value) || 0);
   if(e.target.classList.contains('edit-sold')) p.sold = Math.max(0, parseInt(e.target.value) || 0);
@@ -509,6 +582,7 @@ document.getElementById('inventoryBody').addEventListener('click', async (e)=>{
     if(product){
       product.name = row.querySelector('.edit-name').value;
       product.category = row.querySelector('.edit-category').value;
+      product.type = row.querySelector('.edit-type').value;
       product.price = parseFloat(row.querySelector('.edit-price').value) || 0;
       product.stock = Math.max(0, parseInt(row.querySelector('.edit-stock').value) || 0);
       product.sold = Math.max(0, parseInt(row.querySelector('.edit-sold').value) || 0);
