@@ -643,6 +643,11 @@ window.addEventListener('pagehide', ()=>{
   saveSettings();
 });
 
+window.addEventListener('storage', (event)=>{
+  if(event.key !== 'vape-shop-products-v2' && event.key !== 'vape-shop-settings-v2') return;
+  loadData();
+});
+
 function renderDashboardOnly(){
   const bsList = document.getElementById('bestSellerList');
   const bs = bestSellers();
