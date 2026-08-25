@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vapor Shop</title>
+<title>Vape Shop</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -127,7 +127,10 @@
   .name-col{min-width:150px;}
   .cat-col{width:120px;}
   .price-col{width:90px;}
-  .actions-col{width:44px;}
+  .actions-col{width:104px;}
+  .row-actions{display:flex;align-items:center;gap:8px;}
+  .save-btn{background:rgba(76,224,210,0.12);border:1px solid rgba(76,224,210,0.35);color:var(--cyan);font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;padding:7px 10px;border-radius:7px;cursor:pointer;transition:background .2s,color .2s;}
+  .save-btn:hover{background:var(--cyan);color:#0B0F19;}
   .icon-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px;line-height:1;transition:color .2s;}
   .icon-btn:hover{color:var(--red);}
 
@@ -245,7 +248,7 @@
     <div class="panel">
       <div class="settings-row">
         <div class="field">
-          <label>Shop name</label>
+          <label>Ralph Vape Menu</label>
           <input type="text" id="settingShopName" placeholder="Your Shop Name">
         </div>
         <div class="field">
@@ -256,7 +259,7 @@
     </div>
   </div>
 
-  <footer>changes save automatically &middot; shared with anyone viewing this page</footer>
+  <footer>changes save automatically &middot; saved in this browser</footer>
 </div>
 
 <script>
@@ -270,7 +273,7 @@ const CATEGORY_COLORS = {
 };
 
 let products = [];
-let settings = { shopName: 'CloudNine Vapor', lowStockThreshold: 10 };
+let settings = { shopName: 'Ralph Vape', lowStockThreshold: 10 };
 let saveTimer = null;
 
 const seedProducts = () => ([
@@ -286,34 +289,28 @@ function cryptoId(){ return 'p_' + Math.random().toString(36).slice(2,10); }
 
 async function loadData(){
   try{
-    const p = await window.storage.get('products', true);
-    products = p ? JSON.parse(p.value) : seedProducts();
+    const savedProducts = localStorage.getItem('vape-shop-products');
+    products = savedProducts ? JSON.parse(savedProducts) : seedProducts();
   }catch(e){
     products = seedProducts();
   }
   try{
-    const s = await window.storage.get('settings', true);
-    if(s) settings = { ...settings, ...JSON.parse(s.value) };
+    const savedSettings = localStorage.getItem('vape-shop-settings');
+    if(savedSettings) settings = { ...settings, ...JSON.parse(savedSettings) };
   }catch(e){ /* use defaults */ }
 
-  if(products.length && !(await keyExists('products'))){
-    await saveProducts();
-  }
+  if(!localStorage.getItem('vape-shop-products')) await saveProducts();
   renderAll();
-}
-
-async function keyExists(key){
-  try{ await window.storage.get(key, true); return true; }catch(e){ return false; }
 }
 
 async function saveProducts(){
   try{
-    await window.storage.set('products', JSON.stringify(products), true);
+    localStorage.setItem('vape-shop-products', JSON.stringify(products));
   }catch(e){ console.error('Could not save products', e); }
 }
 async function saveSettings(){
   try{
-    await window.storage.set('settings', JSON.stringify(settings), true);
+    localStorage.setItem('vape-shop-settings', JSON.stringify(settings));
   }catch(e){ console.error('Could not save settings', e); }
 }
 
@@ -378,7 +375,7 @@ function renderShop(){
         </div>
         <span class="cat-tag" style="background:color-mix(in srgb, ${color} 18%, transparent); color:${color}; border:1px solid color-mix(in srgb, ${color} 40%, transparent);">${p.category}</span>
         <h3>${escapeHtml(p.name)}</h3>
-        <div class="price">$${Number(p.price).toFixed(2)}</div>
+        <div class="price">₱${Number(p.price).toFixed(2)}</div>
         <div class="vapor-gauge">
           <div class="vapor-fill" style="height:${isOut ? 0 : Math.max(pct,14)}%; background-color:color-mix(in srgb, ${color} 55%, transparent);"></div>
           <div class="gauge-label">${label}</div>
@@ -425,7 +422,7 @@ function renderManage(){
       <td><input type="number" min="0" step="0.01" class="edit-price" value="${p.price}"></td>
       <td><input type="number" min="0" step="1" class="edit-stock" value="${p.stock}"></td>
       <td><input type="number" min="0" step="1" class="edit-sold" value="${p.sold}"></td>
-      <td><button class="icon-btn del-btn" title="Delete">✕</button></td>
+      <td><div class="row-actions"><button class="save-btn save-row" type="button">Save</button><button class="icon-btn del-btn" type="button" title="Delete">✕</button></div></td>
     </tr>`;
   }).join('');
 }
@@ -482,6 +479,20 @@ document.getElementById('inventoryBody').addEventListener('change', ()=>{
 });
 
 document.getElementById('inventoryBody').addEventListener('click', async (e)=>{
+  if(e.target.classList.contains('save-row')){
+    const row = e.target.closest('tr');
+    const product = products.find(item=>item.id===row.dataset.id);
+    if(product){
+      product.name = row.querySelector('.edit-name').value;
+      product.category = row.querySelector('.edit-category').value;
+      product.price = parseFloat(row.querySelector('.edit-price').value) || 0;
+      product.stock = Math.max(0, parseInt(row.querySelector('.edit-stock').value) || 0);
+      product.sold = Math.max(0, parseInt(row.querySelector('.edit-sold').value) || 0);
+    }
+    await saveProducts();
+    renderAll();
+    return;
+  }
   if(e.target.classList.contains('del-btn')){
     const row = e.target.closest('tr');
     const id = row.dataset.id;
@@ -500,6 +511,11 @@ document.getElementById('settingThreshold').addEventListener('input', (e)=>{
   settings.lowStockThreshold = Math.max(0, parseInt(e.target.value) || 0);
   saveSettings();
   renderAll();
+});
+
+window.addEventListener('pagehide', ()=>{
+  saveProducts();
+  saveSettings();
 });
 
 function renderDashboardOnly(){
