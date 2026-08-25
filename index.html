@@ -289,44 +289,52 @@ const CATEGORY_COLORS = {
 };
 
 let products = [];
-let settings = { shopName: 'Ralph Vape', lowStockThreshold: 10 };
+let settings = { shopName: 'Vapor Shop', lowStockThreshold: 10 };
 let saveTimer = null;
 
 const seedProducts = () => ([
-  { id: cryptoId(), name: 'Blue Razz Ice', category: 'Fruity', price: 14.99, stock: 42, sold: 118 },
-  { id: cryptoId(), name: 'Mint Frost', category: 'Menthol', price: 13.99, stock: 6, sold: 95 },
-  { id: cryptoId(), name: 'Vanilla Custard', category: 'Dessert', price: 15.99, stock: 30, sold: 40 },
-  { id: cryptoId(), name: 'Classic Tobacco', category: 'Tobacco', price: 12.99, stock: 0, sold: 22 },
-  { id: cryptoId(), name: 'Peach Mango', category: 'Fruity', price: 14.99, stock: 55, sold: 70 },
-  { id: cryptoId(), name: 'Cola Rush', category: 'Beverage', price: 13.49, stock: 8, sold: 33 },
+  { id: cryptoId(), name: 'BANANA - golden ice', category: 'Fruity', price: 380, stock: 42, sold: 118 },
+  { id: cryptoId(), name: 'MANGO - yellow ice', category: 'Menthol', price: 380, stock: 6, sold: 95 },
+  { id: cryptoId(), name: 'STRAWBERRY - pink ice', category: 'Dessert', price: 380, stock: 8, sold: 40 },
+  { id: cryptoId(), name: 'MATCHA - tokyo jade ice', category: 'Tobacco', price: 380, stock: 0, sold: 22 },
+  { id: cryptoId(), name: 'LYCHEE - blush ice', category: 'Fruity', price: 380, stock: 55, sold: 70 },
+  { id: cryptoId(), name: 'WATERMELON - red ice', category: 'Beverage', price: 380, stock: 8, sold: 33 },
+  { id: cryptoId(), name: 'GRAPE - violet ice', category: 'Fruity', price: 380, stock: 0, sold: 0 },
+  { id: cryptoId(), name: 'MILK - wang wang', category: 'Dessert', price: 380, stock: 0, sold: 0 },
+  { id: cryptoId(), name: 'BLUEBERRY - blueberry ice', category: 'Dessert', price: 380, stock: 0, sold: 0 },
+  { id: cryptoId(), name: 'TARO ICE CREAM - purple snow', category: 'Dessert', price: 380, stock: 0, sold: 0 },
+  { id: cryptoId(), name: 'BLACKCURRANT - black ice', category: 'Menthol', price: 380, stock: 0, sold: 0 },
 ]);
 
 function cryptoId(){ return 'p_' + Math.random().toString(36).slice(2,10); }
 
+const isManagePage = ['/manage', '/admin'].includes(location.pathname.replace(/\/$/, ''));
+if(isManagePage) document.body.classList.remove('public-menu');
+
 async function loadData(){
   try{
-    const savedProducts = localStorage.getItem('vape-shop-products');
+    const savedProducts = localStorage.getItem('vape-shop-products-v2');
     products = savedProducts ? JSON.parse(savedProducts) : seedProducts();
   }catch(e){
     products = seedProducts();
   }
   try{
-    const savedSettings = localStorage.getItem('vape-shop-settings');
+    const savedSettings = localStorage.getItem('vape-shop-settings-v2');
     if(savedSettings) settings = { ...settings, ...JSON.parse(savedSettings) };
   }catch(e){ /* use defaults */ }
 
-  if(!localStorage.getItem('vape-shop-products')) await saveProducts();
+  if(!localStorage.getItem('vape-shop-products-v2')) await saveProducts();
   renderAll();
 }
 
 async function saveProducts(){
   try{
-    localStorage.setItem('vape-shop-products', JSON.stringify(products));
+    localStorage.setItem('vape-shop-products-v2', JSON.stringify(products));
   }catch(e){ console.error('Could not save products', e); }
 }
 async function saveSettings(){
   try{
-    localStorage.setItem('vape-shop-settings', JSON.stringify(settings));
+    localStorage.setItem('vape-shop-settings-v2', JSON.stringify(settings));
   }catch(e){ console.error('Could not save settings', e); }
 }
 
