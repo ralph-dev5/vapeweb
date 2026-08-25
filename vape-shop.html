@@ -116,8 +116,6 @@
   .section-title .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);}
 
   table{width:100%;border-collapse:collapse;}
-  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  .table-scroll table{min-width:760px;}
   th{text-align:left;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;padding:0 10px 10px;}
   td{padding:10px;border-top:1px solid var(--line);vertical-align:middle;}
   tr.row-low td{background:rgba(242,166,90,0.05);}
@@ -152,20 +150,9 @@
   footer{text-align:center;margin-top:36px;font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
 
   @media (max-width:600px){
-    .wrap{padding:20px 12px 56px;}
     .brand h1{font-size:24px;}
     header{flex-direction:column;}
     .toggle{align-self:flex-start;}
-    .panel{padding:12px;overflow:hidden;}
-    .dash-grid{grid-template-columns:1fr 1fr;gap:10px;}
-    .dash-card{padding:12px;}
-    .dash-card .big{font-size:22px;}
-    .settings-row{gap:12px;}
-    .settings-row .field{max-width:none;min-width:100%;}
-    .add-form{gap:12px;}
-    .add-form .field{min-width:calc(50% - 6px);}
-    .add-form .field[style*="flex:2"]{min-width:100%;}
-    .add-form .btn-primary{width:100%;}
   }
 </style>
 </head>
@@ -216,8 +203,7 @@
 
     <div class="section-title"><span class="dot"></span>Inventory</div>
     <div class="panel">
-      <div class="table-scroll">
-        <table>
+      <table>
         <thead>
           <tr>
             <th class="name-col">Flavor</th>
@@ -229,8 +215,7 @@
           </tr>
         </thead>
         <tbody id="inventoryBody"></tbody>
-        </table>
-      </div>
+      </table>
 
       <div class="add-form">
         <div class="field" style="flex:2;min-width:160px;">
