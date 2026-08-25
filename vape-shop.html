@@ -35,6 +35,7 @@
     -webkit-font-smoothing:antialiased;
   }
   .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 80px;}
+  .wrap > *{min-width:0;}
 
   /* Header */
   header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:26px;flex-wrap:wrap;}
@@ -115,6 +116,8 @@
   .section-title{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;margin:26px 0 12px;display:flex;align-items:center;gap:8px;}
   .section-title .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);}
 
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .table-scroll table{min-width:760px;}
   table{width:100%;border-collapse:collapse;}
   th{text-align:left;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;padding:0 10px 10px;}
   td{padding:10px;border-top:1px solid var(--line);vertical-align:middle;}
@@ -150,9 +153,31 @@
   footer{text-align:center;margin-top:36px;font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
 
   @media (max-width:600px){
+    body{overflow-x:hidden;}
     .brand h1{font-size:24px;}
     header{flex-direction:column;}
-    .toggle{align-self:flex-start;}
+    .brand{max-width:100%;}
+    .brand .eyebrow{font-size:10px;letter-spacing:.1em;}
+    .toggle{align-self:stretch;}
+    .toggle button{flex:1;padding:9px 14px;}
+    .panel{padding:14px;}
+    .mist-strip{height:auto;min-height:72px;}
+    .mist-strip .msg{padding:14px 16px;font-size:14px;}
+    .grid{grid-template-columns:1fr;gap:12px;}
+    .flavor-card{padding:14px;}
+    .dash-grid{grid-template-columns:1fr 1fr;gap:10px;}
+    .dash-card{padding:12px;}
+    .dash-card .big{font-size:22px;}
+    .mini-list li{gap:8px;align-items:flex-start;}
+    .mini-list li .n{overflow-wrap:anywhere;}
+    .mini-list li .v{white-space:nowrap;}
+    .add-form{gap:12px;}
+    .add-form .field{min-width:calc(50% - 6px);}
+    .add-form .field[style*="flex:2"]{min-width:100%;}
+    .add-form .btn-primary{width:100%;}
+    .settings-row{gap:12px;}
+    .settings-row .field{max-width:none;min-width:100%;}
+    footer{font-size:11px;}
   }
 </style>
 </head>
@@ -203,19 +228,21 @@
 
     <div class="section-title"><span class="dot"></span>Inventory</div>
     <div class="panel">
-      <table>
-        <thead>
-          <tr>
-            <th class="name-col">Flavor</th>
-            <th class="cat-col">Category</th>
-            <th class="price-col">Price</th>
-            <th class="num-col">Stock</th>
-            <th class="num-col">Sold</th>
-            <th class="actions-col"></th>
-          </tr>
-        </thead>
-        <tbody id="inventoryBody"></tbody>
-      </table>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th class="name-col">Flavor</th>
+              <th class="cat-col">Category</th>
+              <th class="price-col">Price</th>
+              <th class="num-col">Stock</th>
+              <th class="num-col">Sold</th>
+              <th class="actions-col"></th>
+            </tr>
+          </thead>
+          <tbody id="inventoryBody"></tbody>
+        </table>
+      </div>
 
       <div class="add-form">
         <div class="field" style="flex:2;min-width:160px;">
