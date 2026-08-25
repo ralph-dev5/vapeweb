@@ -390,7 +390,13 @@ async function loadData(){
     if(savedSettings) settings = { ...settings, ...JSON.parse(savedSettings) };
   }catch(e){ /* use defaults */ }
 
-  if(!localStorage.getItem('vape-shop-products-v2') || addedProducts.length) await saveProducts();
+  products = products.map(product=>({
+    ...product,
+    price: product.type === '40K transparent pod' ? 370
+      : (product.type === '45K non-transparent' ? 350 : product.price)
+  }));
+
+  await saveProducts();
   renderAll();
 }
 
