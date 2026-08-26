@@ -100,6 +100,7 @@
   .vape-fill{display:none;}
   .gauge-label{position:relative;z-index:1;height:100%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--text);text-shadow:0 1px 3px rgba(0,0,0,0.4);}
   .messenger-btn{width:100%;margin-top:12px;background:#0084FF;border:1px solid #0084FF;color:#fff;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;padding:9px 12px;border-radius:8px;cursor:pointer;}
+  .messenger-btn:disabled{background:var(--panel-2);border-color:var(--line);color:var(--muted);cursor:not-allowed;opacity:.7;}
   .messenger-btn:hover{background:#006EDB;border-color:#006EDB;}
 
   /* Manage view */
@@ -593,7 +594,7 @@ function renderShop(){
         <div class="vape-gauge" style="--status-color:${statusColor};">
           <div class="gauge-label" style="color:${statusColor};text-shadow:none;">${label}</div>
         </div>
-        <button class="messenger-btn" type="button" aria-label="Select ${escapeAttr(p.name)} to copy the details">Select to copy the details</button>
+        <button class="messenger-btn" type="button" aria-label="Select ${escapeAttr(p.name)} to copy the details"${isOut ? ' disabled' : ''}>Select to copy the details</button>
       </div>`;
   }).join('');
 }
@@ -684,7 +685,7 @@ document.getElementById('shopGrid').addEventListener('click', (e)=>{
   const card = e.target.closest('.flavor-card');
   if(!card) return;
   const product = products.find(item=>item.id===card.dataset.productId);
-  if(product) messageAboutFlavor(product);
+  if(product && product.stock > 0) messageAboutFlavor(product);
 });
 
 document.getElementById('shopGrid').addEventListener('keydown', (e)=>{
@@ -693,7 +694,7 @@ document.getElementById('shopGrid').addEventListener('keydown', (e)=>{
   if(!card) return;
   e.preventDefault();
   const product = products.find(item=>item.id===card.dataset.productId);
-  if(product) messageAboutFlavor(product);
+  if(product && product.stock > 0) messageAboutFlavor(product);
 });
 
 document.getElementById('manageSearch').addEventListener('input', (e)=>{
