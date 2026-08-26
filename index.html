@@ -508,11 +508,35 @@ function messageAboutFlavor(product){
 }
 async function copySelectedMessage(message){
   try{
-    await navigator.clipboard.writeText(message);
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(message);
+    }else if(!copyWithTextarea(message)){
+      throw new Error('Clipboard is unavailable');
+    }
     alert('Message copied. Paste it in Messenger and tap Send.');
   }catch(e){
+    if(copyWithTextarea(message)){
+      alert('Message copied. Paste it in Messenger and tap Send.');
+      return;
+    }
     alert(`Please copy this message and send it in Messenger:\n\n${message}`);
   }
+}
+function copyWithTextarea(message){
+  const textarea = document.createElement('textarea');
+  textarea.value = message;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.top = '0';
+  textarea.style.left = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+  textarea.setSelectionRange(0, textarea.value.length);
+  let copied = false;
+  try{ copied = document.execCommand('copy'); }catch(e){ /* use the manual-copy prompt */ }
+  textarea.remove();
+  return copied;
 }
 
 /* ---------- Rendering ---------- */
