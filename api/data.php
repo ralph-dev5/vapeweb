@@ -2,29 +2,10 @@
 header('Content-Type: application/json; charset=utf-8');
 
 try {
-    $host = getenv('DB_HOST') ?: '127.0.0.1';
-    $port = getenv('DB_PORT') ?: '3306';
-    $databaseName = getenv('DB_NAME') ?: 'vapeweb';
-    $username = getenv('DB_USER') ?: 'root';
-    $password = getenv('DB_PASSWORD') ?: '';
-
-    $server = new PDO(
-        "mysql:host={$host};port={$port};charset=utf8mb4",
-        $username,
-        $password,
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-    );
-    $server->exec(
-        "CREATE DATABASE IF NOT EXISTS `{$databaseName}`
-         CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
-    );
-
-    $database = new PDO(
-        "mysql:host={$host};port={$port};dbname={$databaseName};charset=utf8mb4",
-        $username,
-        $password,
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-    );
+    $databasePath = getenv('DB_PATH') ?: dirname(__DIR__) . '/data/vape.sqlite';
+    $database = new PDO('sqlite:' . $databasePath, null, null, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+    ]);
     $database->exec(
         'CREATE TABLE IF NOT EXISTS products (
             id VARCHAR(64) PRIMARY KEY,
@@ -34,11 +15,11 @@ try {
             price DECIMAL(10,2) NOT NULL DEFAULT 0,
             stock INT NOT NULL DEFAULT 0,
             sold INT NOT NULL DEFAULT 0
-        ) ENGINE=InnoDB;
+        );
         CREATE TABLE IF NOT EXISTS settings (
             name VARCHAR(100) PRIMARY KEY,
             value TEXT NOT NULL
-        ) ENGINE=InnoDB;'
+        );'
     );
 
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
