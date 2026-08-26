@@ -493,13 +493,34 @@ function flavorColor(product){
   const match = FLAVOR_COLORS.find(([keywords])=>keywords.some(keyword=>flavorName.includes(keyword)));
   return match ? match[1] : (CATEGORY_COLORS[product.category] || 'var(--grey)');
 }
-function messageAboutFlavor(product){
+async function copyOrderMessage(message){
+  try{
+    await navigator.clipboard.writeText(message);
+    return true;
+  }catch(e){
+    const copyField = document.createElement('textarea');
+    copyField.value = message;
+    copyField.setAttribute('readonly', '');
+    copyField.style.position = 'fixed';
+    copyField.style.opacity = '0';
+    document.body.appendChild(copyField);
+    copyField.select();
+    let copied = false;
+    try{ copied = document.execCommand('copy'); }catch(error){ /* clipboard unavailable */ }
+    copyField.remove();
+    return copied;
+  }
+}
+async function messageAboutFlavor(product){
   const message = `Hello, I would like to order ${product.name} (${product.type}) - PHP ${Number(product.price).toFixed(2)}.`;
   const messengerLink = settings.messengerLink.trim() || DEFAULT_MESSENGER_LINK;
   try{
     const messengerUrl = new URL(messengerLink);
-    messengerUrl.searchParams.set('text', message);
     window.open(messengerUrl.toString(), '_blank', 'noopener,noreferrer');
+    const copied = await copyOrderMessage(message);
+    alert(copied
+      ? 'The order message was copied. Paste it in Messenger and tap Send.'
+      : `Please copy this order message and send it in Messenger:\n\n${message}`);
   }catch(e){
     alert('Please add a valid Messenger page link in Manage > Settings.');
   }
