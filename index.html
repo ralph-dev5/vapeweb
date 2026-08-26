@@ -334,6 +334,7 @@ const FLAVOR_COLORS = [
 ];
 const PRODUCT_TYPES = ['50K transparent pod', '40K transparent pod', '45K non-transparent'];
 const DEFAULT_MESSENGER_LINK = 'https://m.me/ralphxps';
+const INVENTORY_VERSION = '2026-08-26-laptop-inventory';
 
 let products = [];
 let settings = { shopName: 'Vapor Shop', lowStockThreshold: 10, messengerLink: DEFAULT_MESSENGER_LINK };
@@ -344,17 +345,18 @@ let manageSearch = '';
 const DATA_API = 'api/data.php';
 
 const seedProducts = () => ([
-  { id: cryptoId(), name: 'BANANA - golden ice', category: 'Fruity', type: '50K transparent pod', price: 380, stock: 42, sold: 118 },
-  { id: cryptoId(), name: 'MANGO - yellow ice', category: 'Menthol', type: '50K transparent pod', price: 380, stock: 6, sold: 95 },
-  { id: cryptoId(), name: 'STRAWBERRY - pink ice', category: 'Dessert', type: '50K transparent pod', price: 380, stock: 8, sold: 40 },
-  { id: cryptoId(), name: 'MATCHA - tokyo jade ice', category: 'Tobacco', type: '50K transparent pod', price: 380, stock: 0, sold: 22 },
-  { id: cryptoId(), name: 'LYCHEE - blush ice', category: 'Fruity', type: '50K transparent pod', price: 380, stock: 55, sold: 70 },
-  { id: cryptoId(), name: 'WATERMELON - red ice', category: 'Beverage', type: '50K transparent pod', price: 380, stock: 8, sold: 33 },
-  { id: cryptoId(), name: 'GRAPE - violet ice', category: 'Fruity', type: '50K transparent pod', price: 380, stock: 0, sold: 0 },
-  { id: cryptoId(), name: 'MILK - wang wang', category: 'Dessert', type: '50K transparent pod', price: 380, stock: 0, sold: 0 },
+  { id: cryptoId(), name: 'BANANA - golden ice', category: 'Fruity', type: '50K transparent pod', price: 380, stock: 0, sold: 118 },
+  { id: cryptoId(), name: 'MANGO - yellow ice', category: 'Menthol', type: '50K transparent pod', price: 380, stock: 1, sold: 95 },
+  { id: cryptoId(), name: 'STRAWBERRY ICE CREAM - pink snow', category: 'Dessert', type: '50K transparent pod', price: 380, stock: 2, sold: 40 },
+  { id: cryptoId(), name: 'MATCHA - tokyo jade ice', category: 'Tobacco', type: '50K transparent pod', price: 380, stock: 3, sold: 22 },
+  { id: cryptoId(), name: 'LYCHEE - blush ice', category: 'Fruity', type: '50K transparent pod', price: 380, stock: 2, sold: 70 },
+  { id: cryptoId(), name: 'WATERMELON - red ice', category: 'Beverage', type: '50K transparent pod', price: 380, stock: 3, sold: 33 },
+  { id: cryptoId(), name: 'GRAPE - violet ice', category: 'Fruity', type: '50K transparent pod', price: 380, stock: 3, sold: 0 },
+  { id: cryptoId(), name: 'MILK - wang wang', category: 'Dessert', type: '50K transparent pod', price: 380, stock: 2, sold: 0 },
   { id: cryptoId(), name: 'BLUEBERRY - blueberry ice', category: 'Dessert', type: '50K transparent pod', price: 380, stock: 0, sold: 0 },
-  { id: cryptoId(), name: 'TARO ICE CREAM - purple snow', category: 'Dessert', type: '50K transparent pod', price: 380, stock: 0, sold: 0 },
+  { id: cryptoId(), name: 'TARO ICE CREAM - purple snow', category: 'Dessert', type: '50K transparent pod', price: 380, stock: 1, sold: 0 },
   { id: cryptoId(), name: 'BLACKCURRANT - black ice', category: 'Menthol', type: '50K transparent pod', price: 380, stock: 0, sold: 0 },
+  { id: cryptoId(), name: 'STRAWBERRY ICE - pink ice', category: 'Fruity', type: '50K transparent pod', price: 380, stock: 1, sold: 0 },
 ]);
 
 const seed40KProducts = () => ([
@@ -407,7 +409,8 @@ async function loadData(){
   let addedProducts = [];
   try{
     const savedProducts = localStorage.getItem('vape-shop-products-v2');
-    products = savedProducts ? JSON.parse(savedProducts) : seedProducts();
+    const savedVersion = localStorage.getItem('vape-shop-inventory-version');
+    products = savedProducts && savedVersion === INVENTORY_VERSION ? JSON.parse(savedProducts) : seedProducts();
     products = products.map(product=>({ ...product, type: product.type || '50K transparent pod' }));
     const existingNames = new Set(products.filter(product=>product.type==='40K transparent pod').map(product=>product.name));
     addedProducts = seed40KProducts().filter(product=>!existingNames.has(product.name));
@@ -419,6 +422,7 @@ async function loadData(){
   }catch(e){
     products = seedProducts();
   }
+  localStorage.setItem('vape-shop-inventory-version', INVENTORY_VERSION);
   try{
     const savedSettings = localStorage.getItem('vape-shop-settings-v2');
     if(savedSettings) settings = { ...settings, ...JSON.parse(savedSettings) };
