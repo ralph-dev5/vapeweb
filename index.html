@@ -500,8 +500,8 @@ function messageAboutFlavor(product){
   const messengerLink = settings.messengerLink.trim() || DEFAULT_MESSENGER_LINK;
   try{
     const messengerUrl = new URL(messengerLink);
-    window.open(messengerUrl.toString(), '_blank', 'noopener,noreferrer');
     copySelectedMessage(message);
+    window.open(messengerUrl.toString(), '_blank', 'noopener,noreferrer');
   }catch(e){
     alert('Please add a valid Messenger page link in Manage > Settings.');
   }
