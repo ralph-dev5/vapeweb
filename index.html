@@ -468,6 +468,20 @@ async function saveToDatabase(){
   }catch(e){ /* browser storage remains available as a fallback */ }
 }
 
+async function refreshSharedData(){
+  try{
+    const response = await fetch(`${DATA_API}?updated=${Date.now()}`, { cache: 'no-store' });
+    if(!response.ok) return;
+    const remote = await response.json();
+    if(!remote.initialized) return;
+    products = remote.products.map(product=>({ ...product, type: product.type || '50K transparent pod' }));
+    settings = { ...settings, ...(remote.settings || {}), shopName: 'Vape Shop' };
+    localStorage.setItem('vape-shop-products-v2', JSON.stringify(products));
+    localStorage.setItem('vape-shop-settings-v2', JSON.stringify(settings));
+    renderAll();
+  }catch(e){ /* keep the current data when temporarily offline */ }
+}
+
 function queueSaveProducts(){
   clearTimeout(saveTimer);
   saveTimer = setTimeout(saveProducts, 300);
@@ -808,6 +822,12 @@ function renderDashboardOnly(){
 }
 
 loadData();
+if(!isManagePage){
+  setInterval(refreshSharedData, 10000);
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.visibilityState === 'visible') refreshSharedData();
+  });
+}
 </script>
 </body>
 </html>
