@@ -101,6 +101,10 @@
   .gauge-label{position:relative;z-index:1;height:100%;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--text);text-shadow:0 1px 3px rgba(0,0,0,0.4);}
   .messenger-btn{width:100%;margin-top:12px;background:#0084FF;border:1px solid #0084FF;color:#fff;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;padding:9px 12px;border-radius:8px;cursor:pointer;}
   .messenger-btn:hover{background:#006EDB;border-color:#006EDB;}
+  .order-message{display:none;width:100%;min-height:58px;margin-top:10px;resize:none;background:var(--panel-2);border:1px solid var(--cyan);color:var(--text);font-size:12px;line-height:1.4;}
+  .flavor-card.selected .order-message{display:block;}
+  .copy-hint{display:none;margin:7px 0 0;color:var(--muted);font-size:11px;}
+  .flavor-card.selected .copy-hint{display:block;}
 
   /* Manage view */
   .dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:22px;}
@@ -495,34 +499,17 @@ function flavorColor(product){
   const match = FLAVOR_COLORS.find(([keywords])=>keywords.some(keyword=>flavorName.includes(keyword)));
   return match ? match[1] : (CATEGORY_COLORS[product.category] || 'var(--grey)');
 }
-async function copyOrderMessage(message){
-  try{
-    await navigator.clipboard.writeText(message);
-    return true;
-  }catch(e){
-    const copyField = document.createElement('textarea');
-    copyField.value = message;
-    copyField.setAttribute('readonly', '');
-    copyField.style.position = 'fixed';
-    copyField.style.opacity = '0';
-    document.body.appendChild(copyField);
-    copyField.select();
-    let copied = false;
-    try{ copied = document.execCommand('copy'); }catch(error){ /* clipboard unavailable */ }
-    copyField.remove();
-    return copied;
-  }
-}
-async function messageAboutFlavor(product){
+function messageAboutFlavor(product, card){
   const message = `Hello, I would like to order ${product.name} (${product.type}) - PHP ${Number(product.price).toFixed(2)}.`;
   const messengerLink = settings.messengerLink.trim() || DEFAULT_MESSENGER_LINK;
   try{
     const messengerUrl = new URL(messengerLink);
     window.open(messengerUrl.toString(), '_blank', 'noopener,noreferrer');
-    const copied = await copyOrderMessage(message);
-    alert(copied
-      ? 'The order message was copied. Paste it in Messenger and tap Send.'
-      : `Please copy this order message and send it in Messenger:\n\n${message}`);
+    card.classList.add('selected');
+    const messageField = card.querySelector('.order-message');
+    messageField.value = message;
+    messageField.focus();
+    messageField.select();
   }catch(e){
     alert('Please add a valid Messenger page link in Manage > Settings.');
   }
@@ -578,6 +565,8 @@ function renderShop(){
           <div class="gauge-label">${label}</div>
         </div>
         <button class="messenger-btn" type="button" aria-label="Select ${escapeAttr(p.name)} and message us">Select Flavor</button>
+        <textarea class="order-message" readonly aria-label="Order message for ${escapeAttr(p.name)}"></textarea>
+        <p class="copy-hint">Copy the message above manually, then paste and send it in Messenger.</p>
       </div>`;
   }).join('');
 }
@@ -664,10 +653,11 @@ document.getElementById('shopSearch').addEventListener('input', (e)=>{
 });
 
 document.getElementById('shopGrid').addEventListener('click', (e)=>{
+  if(!e.target.closest('.messenger-btn')) return;
   const card = e.target.closest('.flavor-card');
   if(!card) return;
   const product = products.find(item=>item.id===card.dataset.productId);
-  if(product) messageAboutFlavor(product);
+  if(product) messageAboutFlavor(product, card);
 });
 
 document.getElementById('shopGrid').addEventListener('keydown', (e)=>{
@@ -676,7 +666,7 @@ document.getElementById('shopGrid').addEventListener('keydown', (e)=>{
   if(!card) return;
   e.preventDefault();
   const product = products.find(item=>item.id===card.dataset.productId);
-  if(product) messageAboutFlavor(product);
+  if(product) messageAboutFlavor(product, card);
 });
 
 document.getElementById('manageSearch').addEventListener('input', (e)=>{
