@@ -400,6 +400,7 @@ async function loadData(){
       if(remote.initialized){
         products = remote.products.map(product=>({ ...product, type: product.type || '50K transparent pod' }));
         settings = { ...settings, ...(remote.settings || {}) };
+        settings.shopName = 'Vape Shop';
         renderAll();
         return;
       }
@@ -427,6 +428,7 @@ async function loadData(){
     const savedSettings = localStorage.getItem('vape-shop-settings-v2');
     if(savedSettings) settings = { ...settings, ...JSON.parse(savedSettings) };
   }catch(e){ /* use defaults */ }
+  settings.shopName = 'Vape Shop';
 
   if(!localStorage.getItem('vape-shop-price-migration-v1')){
     products = products.map(product=>({
