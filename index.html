@@ -22,7 +22,7 @@
     --brown: #C08552;
     --grey: #8992A9;
     --green: #65D68B;
-    --red: #F26D6D;
+    --red: #E53935;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -95,7 +95,7 @@
   .badge{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:999px;white-space:nowrap;}
   .badge.best{background:rgba(242,166,90,0.15);color:var(--amber);border:1px solid rgba(242,166,90,0.35);}
   .badge.low{background:rgba(255,111,165,0.15);color:var(--pink);border:1px solid rgba(255,111,165,0.35);}
-  .badge.out{background:rgba(242,109,109,0.15);color:var(--red);border:1px solid rgba(242,109,109,0.35);}
+  .badge.out{background:var(--red);color:#fff;border:1px solid var(--red);}
 
   .vapor-gauge{position:relative;width:100%;height:34px;border-radius:12px;background:rgba(255,255,255,0.03);overflow:hidden;border:1px solid var(--line);}
   .vapor-fill{position:absolute;left:0;right:0;bottom:0;transition:height .6s ease;}
