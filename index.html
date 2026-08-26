@@ -17,6 +17,7 @@
     --cyan: #4CE0D2;
     --violet: #9B7EF2;
     --amber: #F2A65A;
+    --yellow: #F4D35E;
     --pink: #FF6FA5;
     --brown: #C08552;
     --grey: #8992A9;
@@ -480,7 +481,7 @@ function stockLabel(p){
 }
 function stockColor(p){
   if(p.stock===0) return 'var(--red)';
-  if(p.stock<=settings.lowStockThreshold) return 'var(--amber)';
+  if(p.stock<=settings.lowStockThreshold) return 'var(--yellow)';
   return 'var(--green)';
 }
 function flavorColor(product){
