@@ -103,8 +103,9 @@
   .messenger-btn:hover{background:#006EDB;border-color:#006EDB;}
   .order-message{display:none;width:100%;min-height:58px;margin-top:10px;resize:none;background:var(--panel-2);border:1px solid var(--cyan);color:var(--text);font-size:12px;line-height:1.4;}
   .flavor-card.selected .order-message{display:block;}
-  .copy-hint{display:none;margin:7px 0 0;color:var(--muted);font-size:11px;}
-  .flavor-card.selected .copy-hint{display:block;}
+  .copy-message-btn{display:none;margin-top:8px;background:var(--panel-2);border:1px solid var(--line);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;padding:7px 12px;border-radius:7px;cursor:pointer;}
+  .copy-message-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+  .flavor-card.selected .copy-message-btn{display:block;}
 
   /* Manage view */
   .dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:22px;}
@@ -514,6 +515,18 @@ function messageAboutFlavor(product, card){
     alert('Please add a valid Messenger page link in Manage > Settings.');
   }
 }
+async function copySelectedMessage(button){
+  const card = button.closest('.flavor-card');
+  const messageField = card.querySelector('.order-message');
+  try{
+    await navigator.clipboard.writeText(messageField.value);
+    alert('Message copied. Paste it in Messenger and tap Send.');
+  }catch(e){
+    messageField.focus();
+    messageField.select();
+    alert('The message is selected. Copy it, then paste it in Messenger and tap Send.');
+  }
+}
 
 /* ---------- Rendering ---------- */
 function renderAll(){
@@ -566,7 +579,7 @@ function renderShop(){
         </div>
         <button class="messenger-btn" type="button" aria-label="Select ${escapeAttr(p.name)} and message us">Select Flavor</button>
         <textarea class="order-message" readonly aria-label="Order message for ${escapeAttr(p.name)}"></textarea>
-        <p class="copy-hint">Copy the message above manually, then paste and send it in Messenger.</p>
+        <button class="copy-message-btn" type="button">Copy</button>
       </div>`;
   }).join('');
 }
@@ -653,6 +666,11 @@ document.getElementById('shopSearch').addEventListener('input', (e)=>{
 });
 
 document.getElementById('shopGrid').addEventListener('click', (e)=>{
+  const copyButton = e.target.closest('.copy-message-btn');
+  if(copyButton){
+    copySelectedMessage(copyButton);
+    return;
+  }
   if(!e.target.closest('.messenger-btn')) return;
   const card = e.target.closest('.flavor-card');
   if(!card) return;
