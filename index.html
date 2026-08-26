@@ -82,6 +82,8 @@
   /* Flavor grid */
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;}
   .flavor-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;position:relative;overflow:hidden;transition:transform .2s ease, border-color .2s ease;}
+  .flavor-card{cursor:pointer;}
+  .flavor-card:focus-visible{outline:2px solid var(--cyan);outline-offset:3px;}
   .flavor-card .flavor-color{height:7px;margin:-16px -16px 15px;background:var(--flavor-color);box-shadow:0 4px 18px color-mix(in srgb, var(--flavor-color) 45%, transparent);}
   .flavor-card .flavor-color::after{content:"";display:block;width:42%;height:100%;background:rgba(255,255,255,.38);filter:blur(5px);}
   .flavor-card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.18);}
@@ -290,6 +292,10 @@
           <label>Low stock threshold (units)</label>
           <input type="number" id="settingThreshold" min="0" step="1">
         </div>
+        <div class="field">
+          <label>Messenger page link</label>
+          <input type="url" id="settingMessengerLink" placeholder="https://m.me/your-page">
+        </div>
       </div>
     </div>
   </div>
@@ -325,9 +331,10 @@ const FLAVOR_COLORS = [
   [['bacteria monster'], '#7ACB88']
 ];
 const PRODUCT_TYPES = ['50K transparent pod', '40K transparent pod', '45K non-transparent'];
+const DEFAULT_MESSENGER_LINK = 'https://m.me/ralphxps';
 
 let products = [];
-let settings = { shopName: 'Vapor Shop', lowStockThreshold: 10 };
+let settings = { shopName: 'Vapor Shop', lowStockThreshold: 10, messengerLink: DEFAULT_MESSENGER_LINK };
 let saveTimer = null;
 let activeFilter = 'all';
 let shopSearch = '';
@@ -486,12 +493,24 @@ function flavorColor(product){
   const match = FLAVOR_COLORS.find(([keywords])=>keywords.some(keyword=>flavorName.includes(keyword)));
   return match ? match[1] : (CATEGORY_COLORS[product.category] || 'var(--grey)');
 }
+function messageAboutFlavor(product){
+  const message = `Hello, I would like to order ${product.name} (${product.type}) - PHP ${Number(product.price).toFixed(2)}.`;
+  const messengerLink = settings.messengerLink.trim() || DEFAULT_MESSENGER_LINK;
+  try{
+    const messengerUrl = new URL(messengerLink);
+    messengerUrl.searchParams.set('text', message);
+    window.open(messengerUrl.toString(), '_blank', 'noopener,noreferrer');
+  }catch(e){
+    alert('Please add a valid Messenger page link in Manage > Settings.');
+  }
+}
 
 /* ---------- Rendering ---------- */
 function renderAll(){
   document.getElementById('shopTitle').innerHTML = escapeHtml(settings.shopName).replace(/(\S+)$/, '<span>$1</span>');
   document.getElementById('settingShopName').value = settings.shopName;
   document.getElementById('settingThreshold').value = settings.lowStockThreshold;
+  document.getElementById('settingMessengerLink').value = settings.messengerLink || DEFAULT_MESSENGER_LINK;
   renderShop();
   renderManage();
 }
@@ -522,7 +541,7 @@ function renderShop(){
     const color = flavorColor(p);
     const statusColor = stockColor(p);
     return `
-      <div class="flavor-card" style="--flavor-color:${color};">
+      <div class="flavor-card" style="--flavor-color:${color};" data-product-id="${escapeAttr(p.id)}" role="button" tabindex="0" aria-label="Message us about ${escapeAttr(p.name)}">
         <div class="flavor-color" aria-hidden="true"></div>
         <div class="badges">
           ${isBest ? '<span class="badge best">🔥 Best Seller</span>' : ''}
@@ -620,6 +639,22 @@ document.getElementById('shopSearch').addEventListener('input', (e)=>{
   renderShop();
 });
 
+document.getElementById('shopGrid').addEventListener('click', (e)=>{
+  const card = e.target.closest('.flavor-card');
+  if(!card) return;
+  const product = products.find(item=>item.id===card.dataset.productId);
+  if(product) messageAboutFlavor(product);
+});
+
+document.getElementById('shopGrid').addEventListener('keydown', (e)=>{
+  if(e.key !== 'Enter' && e.key !== ' ') return;
+  const card = e.target.closest('.flavor-card');
+  if(!card) return;
+  e.preventDefault();
+  const product = products.find(item=>item.id===card.dataset.productId);
+  if(product) messageAboutFlavor(product);
+});
+
 document.getElementById('manageSearch').addEventListener('input', (e)=>{
   manageSearch = e.target.value.trim().toLowerCase();
   renderManage();
@@ -695,6 +730,10 @@ document.getElementById('settingThreshold').addEventListener('input', (e)=>{
   settings.lowStockThreshold = Math.max(0, parseInt(e.target.value) || 0);
   saveSettings();
   renderAll();
+});
+document.getElementById('settingMessengerLink').addEventListener('input', (e)=>{
+  settings.messengerLink = e.target.value.trim();
+  saveSettings();
 });
 
 window.addEventListener('pagehide', ()=>{
