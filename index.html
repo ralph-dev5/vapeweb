@@ -535,7 +535,7 @@ function renderShop(){
         <h3>${escapeHtml(p.name)}</h3>
         <div class="price">₱${Number(p.price).toFixed(2)}</div>
         <div class="vapor-gauge">
-          <div class="vapor-fill" style="height:${isOut ? 0 : Math.max(pct,14)}%; background-color:${statusColor};"></div>
+          <div class="vapor-fill" style="height:100%; background-color:${statusColor};"></div>
           <div class="gauge-label">${label}</div>
         </div>
       </div>`;
