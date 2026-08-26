@@ -482,8 +482,8 @@ function stockPct(p){
 }
 function stockLabel(p){
   if(p.stock===0) return 'Sold Out';
-  if(p.stock<=settings.lowStockThreshold) return 'Limited';
-  return 'In Stock';
+  if(p.stock<=settings.lowStockThreshold) return `${p.stock} available - Limited`;
+  return `${p.stock} available`;
 }
 function stockColor(p){
   if(p.stock===0) return 'var(--red)';
