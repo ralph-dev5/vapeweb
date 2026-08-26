@@ -577,7 +577,7 @@ function renderShop(){
           <div class="vapor-fill" style="height:100%; background-color:${statusColor};"></div>
           <div class="gauge-label">${label}</div>
         </div>
-        <button class="messenger-btn" type="button">Order via Messenger</button>
+        <button class="messenger-btn" type="button" aria-label="Select ${escapeAttr(p.name)} and message us">Select Flavor</button>
       </div>`;
   }).join('');
 }
