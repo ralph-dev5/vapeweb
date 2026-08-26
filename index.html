@@ -20,6 +20,7 @@
     --pink: #FF6FA5;
     --brown: #C08552;
     --grey: #8992A9;
+    --green: #65D68B;
     --red: #F26D6D;
   }
   *{box-sizing:border-box;}
@@ -485,6 +486,11 @@ function stockLabel(p){
   if(p.stock<=settings.lowStockThreshold) return 'Limited';
   return 'In Stock';
 }
+function stockColor(p){
+  if(p.stock===0) return 'var(--red)';
+  if(p.stock<=settings.lowStockThreshold) return 'var(--amber)';
+  return 'var(--green)';
+}
 function flavorColor(product){
   const flavorName = String(product.name).toLowerCase();
   const match = FLAVOR_COLORS.find(([keywords])=>keywords.some(keyword=>flavorName.includes(keyword)));
@@ -524,6 +530,7 @@ function renderShop(){
     const isOut = p.stock===0;
     const isLow = !isOut && p.stock<=settings.lowStockThreshold;
     const color = flavorColor(p);
+    const statusColor = stockColor(p);
     return `
       <div class="flavor-card" style="--flavor-color:${color};">
         <div class="flavor-color" aria-hidden="true"></div>
@@ -535,7 +542,7 @@ function renderShop(){
         <h3>${escapeHtml(p.name)}</h3>
         <div class="price">₱${Number(p.price).toFixed(2)}</div>
         <div class="vapor-gauge">
-          <div class="vapor-fill" style="height:${isOut ? 0 : Math.max(pct,14)}%; background-color:color-mix(in srgb, ${color} 55%, transparent);"></div>
+          <div class="vapor-fill" style="height:${isOut ? 0 : Math.max(pct,14)}%; background-color:color-mix(in srgb, ${statusColor} 55%, transparent);"></div>
           <div class="gauge-label">${label}</div>
         </div>
       </div>`;
