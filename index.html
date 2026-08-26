@@ -83,6 +83,8 @@
   /* Flavor grid */
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;}
   .flavor-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;position:relative;overflow:hidden;transition:transform .2s ease, border-color .2s ease;}
+  .flavor-card .flavor-color{height:7px;margin:-16px -16px 15px;background:var(--flavor-color);box-shadow:0 4px 18px color-mix(in srgb, var(--flavor-color) 45%, transparent);}
+  .flavor-card .flavor-color::after{content:"";display:block;width:42%;height:100%;background:rgba(255,255,255,.38);filter:blur(5px);}
   .flavor-card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.18);}
   .flavor-card .cat-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:999px;margin-bottom:10px;}
   .flavor-card h3{font-family:'Space Grotesk',sans-serif;font-size:18px;margin:0 0 4px;}
@@ -313,6 +315,24 @@ const CATEGORY_COLORS = {
   Beverage: 'var(--violet)',
   Other: 'var(--grey)'
 };
+const FLAVOR_COLORS = [
+  [['banana', 'yellow summer'], '#F4D35E'],
+  [['mango'], '#F2A65A'],
+  [['strawberry', 'red pulp', 'red cannon'], '#FF6F91'],
+  [['matcha'], '#78B159'],
+  [['lychee'], '#F5A6C8'],
+  [['watermelon'], '#EF6A6A'],
+  [['grape', 'grapes', 'trouble purple'], '#9B7EF2'],
+  [['milk', 'yakult'], '#F3E9D2'],
+  [['blueberry', 'blueberries', 'blue freeze', 'black wave'], '#5DA9E9'],
+  [['taro'], '#B58AE6'],
+  [['blackcurrant'], '#6D3B78'],
+  [['ice monkey', 'very chill', 'very chill'], '#4CE0D2'],
+  [['bubblegum'], '#FF8DC7'],
+  [['mix berries', 'very baguio'], '#C94C8A'],
+  [['sparkle squeeze'], '#F6C85F'],
+  [['bacteria monster'], '#7ACB88']
+];
 const PRODUCT_TYPES = ['50K transparent pod', '40K transparent pod', '45K non-transparent'];
 
 let products = [];
@@ -465,6 +485,11 @@ function stockLabel(p){
   if(p.stock<=settings.lowStockThreshold) return 'Limited';
   return 'In Stock';
 }
+function flavorColor(product){
+  const flavorName = String(product.name).toLowerCase();
+  const match = FLAVOR_COLORS.find(([keywords])=>keywords.some(keyword=>flavorName.includes(keyword)));
+  return match ? match[1] : (CATEGORY_COLORS[product.category] || 'var(--grey)');
+}
 
 /* ---------- Rendering ---------- */
 function renderAll(){
@@ -498,9 +523,10 @@ function renderShop(){
     const isBest = bs.includes(p.id);
     const isOut = p.stock===0;
     const isLow = !isOut && p.stock<=settings.lowStockThreshold;
-    const color = CATEGORY_COLORS[p.category] || 'var(--grey)';
+    const color = flavorColor(p);
     return `
-      <div class="flavor-card">
+      <div class="flavor-card" style="--flavor-color:${color};">
+        <div class="flavor-color" aria-hidden="true"></div>
         <div class="badges">
           ${isBest ? '<span class="badge best">🔥 Best Seller</span>' : ''}
           ${isOut ? '<span class="badge out">Sold Out</span>' : (isLow ? '<span class="badge low">Limited</span>' : '')}
